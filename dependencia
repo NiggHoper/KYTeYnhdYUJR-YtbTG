@@ -1,0 +1,45 @@
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+
+-- URL del archivo de whitelist en GitHub
+local githubURL = "https://raw.githubusercontent.com/tu-usuario/example-repo/main/whitelist.txt"
+
+-- Función para obtener la whitelist desde GitHub
+local function getWhitelist()
+    local success, response = pcall(function()
+        return HttpService:GetAsync(githubURL)
+    end)
+
+    if success then
+        local whitelist = {}
+        for line in response:gmatch("[^\r\n]+") do
+            table.insert(whitelist, line)
+        end
+        return whitelist
+    else
+        warn("No se pudo obtener la whitelist: " .. tostring(response))
+        return {}
+    end
+end
+
+-- Función para verificar si el usuario está en la whitelist
+local function isWhitelisted(playerName, whitelist)
+    print("Verificando usuario: " .. playerName) -- Mensaje de depuración
+    for _, whitelistedName in pairs(whitelist) do
+        print("Comparando con: " .. whitelistedName) -- Mensaje de depuración
+        if playerName == whitelistedName then
+            return true
+        end
+    end
+    return false
+end
+
+-- Obtener la whitelist y verificar si el jugador actual está en ella
+local whitelist = getWhitelist()
+if isWhitelisted(LocalPlayer.Name, whitelist) then
+    print(LocalPlayer.Name .. " está en la whitelist")
+else
+    print(LocalPlayer.Name .. " no está en la whitelist") -- Mensaje de depuración
+    LocalPlayer:Kick("Not Whitelisted")
+end
